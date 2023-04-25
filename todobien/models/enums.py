@@ -1,12 +1,18 @@
+from typing import Self
 import enum
 
 
-class TaskType(str, enum.Enum):
-    FEATURE = "FEATURE"
-    BUG = "BUG"
+class BaseEnum(str, enum.Enum):
+    def __str__(self) -> str:
+        return self.value
+
+    def __eq__(self, other: str | Self) -> bool:
+        if isinstance(other, str):
+            return self.value.casefold() == other.casefold()
+        return super().__eq__(other)
 
 
-class Status(str, enum.Enum):
+class Status(BaseEnum):
     TODO = "TODO"
     IN_PROGRESS = "IN_PROGRESS"
     PAUSED = "PAUSED"
@@ -15,7 +21,7 @@ class Status(str, enum.Enum):
     CANCELED = "CANCELED"
 
 
-class Priority(str, enum.Enum):
+class Priority(BaseEnum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
