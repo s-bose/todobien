@@ -64,10 +64,16 @@ def view(
 
 @app.command()
 def set(
-    priority: Priority = typer.Option(
-        Priority.LOW,
-        autocompletion=lambda: [Priority.LOW, Priority.MEDIUM, Priority.HIGH],
-    )
+    priority: Priority = typer.Option(Priority.LOW, "-x", "-X", "--priority"),
+    status: Status = typer.Option(Status.TODO, "-s", "-S", "--status"),
+    estimate: str = typer.Option("", "-E", "--estimate"),
+    due: str = typer.Option(
+        "",
+        "-D",
+        "--due",
+        rich_help_panel="Due date for completion: Format: [green]yyyy-mm-dd[/green]",
+    ),
+    path: str = typer.Option("", rich_help_panel="path to a resource separated by /"),
 ):
     console.print("set")
 
