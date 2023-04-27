@@ -2,7 +2,6 @@ from rich.console import Console
 from rich.table import Table
 import datetime
 
-import time
 from rich.progress import track
 
 table = Table(title="Projects")

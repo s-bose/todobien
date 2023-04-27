@@ -11,7 +11,6 @@ class DbInstance:
     _database: Database = None
 
     def __init__(self) -> None:
-        print(settings.SQLITE_DB_STR)
         self._engine = create_engine(settings.SQLITE_DB_STR)
 
         self._sessionmaker = sessionmaker(

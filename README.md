@@ -23,8 +23,10 @@ creates a local db inside ~/.todobien/todobien-{username}.db - username-{usernam
 >>> todobien task add | delete | update | view
 
 ```
-## Future Enhancements
+# Future Enhancements
 Run a localhost web instance 
 ```bash
 >>> todobien start web
 ```
+
+Further improvements are needed.
