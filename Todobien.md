@@ -79,3 +79,11 @@
 	0. datetime format - yyyy-mm-dd
 
 	- 
+
+### Ideas
+
+1. `todo dashboard` - to show a overview of all the projects
+2. `todo board` - to show an interactive kanban board for task management
+
+### Useful links:
+1. [python-kanban](https://github.com/fillipe-gsm/python-kanban)
