@@ -1,34 +1,22 @@
-from typing import ForwardRef, Optional
 from datetime import datetime
-import ormar as om
-from ormar import Model
-from sqlalchemy import MetaData
+from sqlalchemy import String, Integer, JSON, Boolean, ForeignKey, DateTime
+from sqlalchemy.orm import Mapped, declarative_base, mapped_column
 
-from todobien.db.database import db_instance
-
-metadata = MetaData()
-
-TaskRef = ForwardRef("Task")
+Base = declarative_base()
 
 
-class Task(Model):
-    class Meta:
-        metadata = metadata
-        database = db_instance.database
+class Task(Base):
+    __tablename__ = "task"
 
-    id: int = om.Integer(primary_key=True, autoincrement=True)
-    name: str = om.String(max_length=100, unique=True)
-    description: str = om.Text(nullable=True)
-    links: str = om.Text(nullable=True)
-    additional_data: dict = om.JSON(nullable=True)
-    is_done: bool = om.Boolean(default=False)
-    is_deleted: bool = om.Boolean(default=False)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String, unique=True)
+    description: Mapped[str] = mapped_column(String, nullable=True)
+    links: Mapped[str] = mapped_column(String, nullable=True)
+    additional_data: Mapped[dict] = mapped_column(JSON, nullable=True)
+    is_done: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    parent_id: Mapped[int] = mapped_column(Integer, ForeignKey("task.id"))
 
-    parent: Optional[TaskRef] = om.ForeignKey(TaskRef, nullable=True)
-
-    created_at: datetime = om.DateTime(default=datetime.now())
-    updated_at: datetime = om.DateTime(default=datetime.now())
-    due_date: datetime = om.DateTime(nullable=False)
-
-
-Task.update_forward_refs()
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
+    due_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)

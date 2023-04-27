@@ -4,11 +4,11 @@ from rich.console import Console
 
 from pathlib import Path
 
-from todobien.models.models import metadata
+from todobien.models.models import Base
 from todobien.db.database import db_instance
 from todobien.models.enums import Priority, Status
 
-metadata.create_all(bind=db_instance.engine)
+Base.metadata.create_all(bind=db_instance.engine)
 
 app = typer.Typer()
 console = Console()
