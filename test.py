@@ -1,37 +1,45 @@
 import questionary
 import argparse
+from prompt_toolkit.completion import NestedCompleter
+from prompt_toolkit import prompt
+from prompt_toolkit.shortcuts import CompleteStyle
+import argcomplete
 
 projects = {
-    "todobien": [
-        "TDB-001",
-        "TDB-002",
-        "TDB-003",
-        "TDB-004",
-    ],
-    "fermit": [
-        "FMT-001",
-        "FMT-002",
-        "FMT-003",
-    ],
-    "random": [
-        "RND-42",
-        "RND-44",
-    ],
+    "show": {
+        "version": None,
+        "interfaces": None,
+        "clock": None,
+        "ip": {"interface": "Brief"},
+    },
+    "exit": None,
 }
 
 argparser = argparse.ArgumentParser()
-
-argparser.add_argument("-p", "--path", required=False)
+completer = NestedCompleter.from_nested_dict(
+    {
+        "show": {"version": None, "clock": None, "ip": {"interface": {"brief"}}},
+        "exit": None,
+    }
+)
+argparser.add_argument("-p", "--path", required=False, choices=["a", "b", "c"])
+argcomplete.autocomplete(argparser)
 
 if __name__ == "__main__":
     args = argparser.parse_args()
     resp = None
-    if not args.path:
-        resp = questionary.autocomplete(
-            "select project: ", choices=projects.keys()
-        ).ask()
-    resp = questionary.autocomplete(
-        "select task: ", choices=projects.get(resp or args.path)
-    ).ask()
+    # if not args.path:
+    #     resp = questionary.autocomplete(
+    #         "select project: ",
+    #         choices=projects.keys(),
+    #         completer=completer,
+    #         complete_style=CompleteStyle.MULTI_COLUMN,
+    #     ).ask()
+    # resp = questionary.autocomplete(
+    #     "select task: ",
+    #     choices=projects.get(resp or args.path),
+    #     completer=completer,
+    #     complete_style=CompleteStyle.MULTI_COLUMN,
+    # ).ask()
 
     print(resp)

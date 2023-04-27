@@ -1,3 +1,4 @@
+from os import walk
 import typer
 from rich.console import Console
 
@@ -17,11 +18,12 @@ console = Console()
 def init():
     pth = Path.home() / ".todobien"
     Path.mkdir(pth, exist_ok=True)
+
     console.print("init")
 
 
 @app.command()
-def add():
+def add(path: str = typer.Option("", help="path to a resource separated by /")):
     console.print("add")
 
 
@@ -58,6 +60,7 @@ def view(
         help="show compact view of project / task",
         is_flag=True,
     ),
+    path: str = typer.Option("", rich_help_panel="path to a resource separated by /"),
 ):
     console.print("view")
 

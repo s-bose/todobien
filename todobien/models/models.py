@@ -1,4 +1,4 @@
-from typing import ForwardRef
+from typing import ForwardRef, Optional
 from datetime import datetime
 import ormar as om
 from ormar import Model
@@ -24,7 +24,7 @@ class Task(Model):
     is_done: bool = om.Boolean(default=False)
     is_deleted: bool = om.Boolean(default=False)
 
-    parent: TaskRef = om.ForeignKey(TaskRef, nullable=True)
+    parent: Optional[TaskRef] = om.ForeignKey(TaskRef, nullable=True)
 
     created_at: datetime = om.DateTime(default=datetime.now())
     updated_at: datetime = om.DateTime(default=datetime.now())
