@@ -1,14 +1,16 @@
-from os import walk
-import typer
-from rich.console import Console
-
+import os
 from pathlib import Path
+import typer
+import questionary
+from rich.console import Console
+from rich.prompt import Prompt
+from prompt_toolkit.shortcuts import CompleteStyle
 
 from todobien.models.models import Base
 from todobien.db.database import db_instance
 from todobien.models.enums import Priority, Status
+from todobien.config import settings
 
-Base.metadata.create_all(bind=db_instance.engine)
 
 app = typer.Typer()
 console = Console()
@@ -16,15 +18,35 @@ console = Console()
 
 @app.command()
 def init():
-    pth = Path.home() / ".todobien"
-    Path.mkdir(pth, exist_ok=True)
+    if Path.exists(settings.SQLITE_DB_PATH):
+        console.print("[red bold]database already exists. Skipping init[/red bold]")
+        raise typer.Exit()
+    else:
+        console.print("[green bold]First time setup[/green bold]")
+        db_path = questionary.path(
+            "Enter db path",
+            default=str(settings.SQLITE_DB_PATH),
+            complete_style=CompleteStyle.MULTI_COLUMN,
+        ).ask()
 
-    console.print("init")
+        if not db_path:
+            db_path = str(settings.SQLITE_DB_PATH)
+
+        console.print(
+            f"[magenta italic]Setting up db in directory: [green]{db_path}[/green][/magenta italic]"
+        )
+        console.print("[magenta italic]Creating tables...[/magenta italic]")
+        Base.metadata.create_all(bind=db_instance.engine)
+
+        console.print("[green]All set! :confetti_ball: [/green]")
 
 
 @app.command()
 def add(path: str = typer.Option("", help="path to a resource separated by /")):
-    console.print("add")
+    if not path:
+        console.print("Creating a new project")
+
+    questionary.autocomplete("test", choices=["alpha", "beta"]).ask()
 
 
 @app.command()

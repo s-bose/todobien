@@ -6,7 +6,6 @@ from pathlib import Path
 class Settings(BaseSettings):
     TODOBIEN_CONFIG_DIR = Path.home() / ".todobien"
     SQLITE_DB_PATH: Path = TODOBIEN_CONFIG_DIR / "main.db"
-    SQLITE_DB_STR: str = f"sqlite:///{str(SQLITE_DB_PATH)}"
 
 
 settings = Settings()

@@ -9,7 +9,7 @@ class DbInstance:
     _sessionmaker: sessionmaker = None
 
     def __init__(self) -> None:
-        self._engine = create_engine(settings.SQLITE_DB_STR)
+        self._engine = create_engine(f"sqlite:///{settings.SQLITE_DB_PATH}")
 
         self._sessionmaker = sessionmaker(
             bind=self._engine, autocommit=True, autoflush=True
