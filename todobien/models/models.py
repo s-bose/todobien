@@ -16,6 +16,8 @@ class Task(Base):
     is_done: Mapped[bool] = mapped_column(Boolean, default=False)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
     parent_id: Mapped[int] = mapped_column(Integer, ForeignKey("task.id"))
+    priority: Mapped[str] = mapped_column(String, nullable=False)
+    status: Mapped[str] = mapped_column(String, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())

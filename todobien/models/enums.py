@@ -11,6 +11,10 @@ class BaseEnum(str, enum.Enum):
             return self.value.casefold() == other.casefold()
         return super().__eq__(other)
 
+    @classmethod
+    def list_values(cls):
+        return [_.value for _ in cls]
+
 
 class Status(BaseEnum):
     TODO = "TODO"

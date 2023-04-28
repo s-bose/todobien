@@ -1,27 +1,16 @@
-from sqlalchemy.engine import Engine, create_engine
-from sqlalchemy.orm import sessionmaker
+from contextlib import contextmanager
 
-from todobien.config import settings
-
-
-class DbInstance:
-    _engine: Engine = None
-    _sessionmaker: sessionmaker = None
-
-    def __init__(self) -> None:
-        self._engine = create_engine(f"sqlite:///{settings.SQLITE_DB_PATH}")
-
-        self._sessionmaker = sessionmaker(
-            bind=self._engine, autocommit=True, autoflush=True
-        )
-
-    @property
-    def engine(self):
-        return self._engine
-
-    @property
-    def session(self):
-        return self._sessionmaker()
+from sqlalchemy.engine import create_engine
+from sqlalchemy.orm import sessionmaker, scoped_session
 
 
-db_instance = DbInstance()
+@contextmanager
+def db_session(db_url):
+    engine = create_engine(f"sqlite:///{db_url}")
+    connection = engine.connect()
+    db_session = scoped_session(
+        sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    )
+    yield db_session
+    db_session.close()
+    connection.close()

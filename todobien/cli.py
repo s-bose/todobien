@@ -2,14 +2,18 @@ import os
 from pathlib import Path
 import typer
 import questionary
+from sqlalchemy.engine import create_engine
+from sqlalchemy.sql import text
 from rich.console import Console
 from rich.prompt import Prompt
+from rich.text import Text
 from prompt_toolkit.shortcuts import CompleteStyle
 
 from todobien.models.models import Base
-from todobien.db.database import db_instance
+from todobien.db.database import db_session
 from todobien.models.enums import Priority, Status
 from todobien.config import settings
+from todobien.utils import get_path_from_config, create_config
 
 
 app = typer.Typer()
@@ -18,7 +22,7 @@ console = Console()
 
 @app.command()
 def init():
-    if Path.exists(settings.SQLITE_DB_PATH):
+    if get_path_from_config():
         console.print("[red bold]database already exists. Skipping init[/red bold]")
         raise typer.Exit()
     else:
@@ -29,23 +33,41 @@ def init():
             complete_style=CompleteStyle.MULTI_COLUMN,
         ).ask()
 
-        if not db_path:
-            db_path = str(settings.SQLITE_DB_PATH)
-
+        db_path = Path(db_path).resolve()
         console.print(
             f"[magenta italic]Setting up db in directory: [green]{db_path}[/green][/magenta italic]"
         )
+        create_config(database=db_path)
+
+        engine = create_engine(f"sqlite:///{db_path}")
+        Base.metadata.create_all(bind=engine)
+
         console.print("[magenta italic]Creating tables...[/magenta italic]")
-        Base.metadata.create_all(bind=db_instance.engine)
 
         console.print("[green]All set! :confetti_ball: [/green]")
 
 
 @app.command()
-def add(path: str = typer.Option("", help="path to a resource separated by /")):
+def add(
+    path: str = typer.Option(
+        "", "-p", "--path", help="path to a resource separated by /"
+    )
+):
     if not path:
         console.print("Creating a new project")
 
+        form = questionary.form(
+            name=questionary.text("Name of the project:"),
+            description=questionary.text("Description:", default=""),
+            links=questionary.text("Links:", default=""),
+            priority=questionary.select(
+                "Priority:", choices=Priority.list_values(), default=Priority.LOW
+            ),
+        )
+        form.ask()
+
+    else:
+        console.print("Creating a task")
     questionary.autocomplete("test", choices=["alpha", "beta"]).ask()
 
 
@@ -106,3 +128,13 @@ def set(
 @app.command()
 def stat():
     console.print("stat")
+
+
+@app.command()
+def purge():
+    answer = questionary.confirm("Remove db. Are you sure?", default=False).ask()
+    if answer:
+        db_path = get_path_from_config()
+        Path(db_path).unlink(missing_ok=True)
+        settings.CONFIG_PATH.unlink(missing_ok=True)
+        console.print("[green]Database successfully removed[/green]")
