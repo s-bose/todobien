@@ -1,16 +1,11 @@
-import os
 from pathlib import Path
 import typer
 import questionary
-from sqlalchemy.engine import create_engine
-from sqlalchemy.sql import text
 from rich.console import Console
-from rich.prompt import Prompt
-from rich.text import Text
 from prompt_toolkit.shortcuts import CompleteStyle
+from sqlalchemy.engine import create_engine
 
 from todobien.models.models import Base
-from todobien.db.database import db_session
 from todobien.models.enums import Priority, Status
 from todobien.config import settings
 from todobien.utils import get_path_from_config, create_config
@@ -43,7 +38,6 @@ def init():
         Base.metadata.create_all(bind=engine)
 
         console.print("[magenta italic]Creating tables...[/magenta italic]")
-
         console.print("[green]All set! :confetti_ball: [/green]")
 
 
