@@ -1,4 +1,6 @@
+from datetime import date, timedelta
 from pathlib import Path
+from todobien.validators import check_date
 import typer
 import questionary
 from rich.console import Console
@@ -36,7 +38,6 @@ def init():
 
         engine = create_engine(f"sqlite:///{db_path}")
         Base.metadata.create_all(bind=engine)
-
         console.print("[magenta italic]Creating tables...[/magenta italic]")
         console.print("[green]All set! :confetti_ball: [/green]")
 
@@ -57,12 +58,36 @@ def add(
             priority=questionary.select(
                 "Priority:", choices=Priority.list_values(), default=Priority.LOW
             ),
+            due_date=questionary.text(
+                "Due date:",
+                instruction="[yyyy-mm-dd]",
+                default=str(date.today() + timedelta(days=7)),
+                validate=check_date,
+            ),
         )
-        form.ask()
+        data = form.ask()
+        console.print(data)
 
     else:
+        validate_path(path)
         console.print("Creating a task")
-    questionary.autocomplete("test", choices=["alpha", "beta"]).ask()
+
+        form = questionary.form(
+            description=questionary.text("Task Title:"),
+            details=questionary.text("Task description:"),
+            priority=questionary.select(
+                "Task priority:", choices=Priority.list_values(), default=Priority.LOW
+            ),
+            due_date=questionary.text(
+                "Due date:",
+                instruction="[yyyy-mm-dd]",
+                default=str(date.today() + timedelta(days=7)),
+                validate=check_date,
+            ),
+        )
+
+        data = form.ask()
+        console.print(data)
 
 
 @app.command()
