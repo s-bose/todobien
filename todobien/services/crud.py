@@ -2,13 +2,12 @@ from typing import Dict
 from sqlalchemy import select
 
 from todobien.models.models import Task
-from todobien.db.database import db_instance
 
 
 class Crud:
-    def __init__(self) -> None:
+    def __init__(self, session) -> None:
         self.model = Task
-        self.session = db_instance.session
+        self.session = session
 
     def create(self, task_dict: Dict) -> Task | None:
         task = Task(**task_dict)
@@ -21,7 +20,7 @@ class Crud:
 
         return self.session.scalars(stmt).one()
 
-    async def read_by_name(self, name: str) -> Task | None:
+    def read_by_name(self, name: str) -> Task | None:
         stmt = select(self.model).where(self.model.name == name)
 
         return self.session.scalars(stmt).one()
