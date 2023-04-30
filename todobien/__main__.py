@@ -1,4 +1,4 @@
-from todobien.cli import app
+from todobien.cli.cli import app
 
 
 app()

@@ -11,8 +11,9 @@ from todobien.db.models import Base
 from todobien.constants import Priority, Status
 from todobien.config import settings
 from todobien.utils import get_path_from_config, create_config
-from todobien.db.database import db_session
-from todobien.services.crud import Crud
+
+# from todobien.db.database import db_session
+# from todobien.services.crud import Crud
 
 app = typer.Typer()
 console = Console()
@@ -56,65 +57,75 @@ def add(
         )
         raise typer.Exit()
 
+    # if not path:
+    #     is_new_project = questionary.confirm(
+    #         "Create a new project?", default=False
+    #     ).ask()
+    #     if not is_new_project:
+    #         raise typer.Exit()
+
+    #     console.print("Creating a new project")
+
+    #     form = questionary.form(
+    #         name=questionary.text(
+    #             "Name of the project:", validate=lambda x: len(x) > 0
+    #         ),
+    #         description=questionary.text("Description:", default=""),
+    #         links=questionary.text("Links:", default=""),
+    #         priority=questionary.select(
+    #             "Priority:", choices=Priority.list_values(), default=Priority.LOW
+    #         ),
+    #         due_date=questionary.text(
+    #             "Due date:",
+    #             instruction="[yyyy-mm-dd]",
+    #             default=str(date.today() + timedelta(days=7)),
+    #             validate=check_date,
+    #         ),
+    #     )
+    #     data = form.ask()
+    #     data["due_date"] = datetime.fromisoformat(data["due_date"])
+
+    #     with db_session(get_path_from_config()) as session:
+    #         if task := Crud(session).create(data):
+    #             console.print(
+    #                 f"[green]Created project={task.name}, id={task.id}[/green]"
+    #             )
+    #         else:
+    #             console.print("[red]Project with name already exists[/red]")
+    #             raise typer.Exit()
+
+    #     console.print(data)
+
+    # else:
+    #     validate_path(path)
+    #     console.print("Creating a task")
+
+    #     form = questionary.form(
+    #         description=questionary.text("Task Title:"),
+    #         details=questionary.text("Task description:"),
+    #         priority=questionary.select(
+    #             "Task priority:", choices=Priority.list_values(), default=Priority.LOW
+    #         ),
+    #         due_date=questionary.text(
+    #             "Due date:",
+    #             instruction="[yyyy-mm-dd]",
+    #             default=str(date.today() + timedelta(days=7)),
+    #             validate=check_date,
+    #         ),
+    #     )
+
+    #     data = form.ask()
+    #     console.print(data)
+
     if not path:
-        is_new_project = questionary.confirm(
-            "Create a new project?", default=False
-        ).ask()
-        if not is_new_project:
-            raise typer.Exit()
-
-        console.print("Creating a new project")
-
-        form = questionary.form(
-            name=questionary.text(
-                "Name of the project:", validate=lambda x: len(x) > 0
-            ),
-            description=questionary.text("Description:", default=""),
-            links=questionary.text("Links:", default=""),
-            priority=questionary.select(
-                "Priority:", choices=Priority.list_values(), default=Priority.LOW
-            ),
-            due_date=questionary.text(
-                "Due date:",
-                instruction="[yyyy-mm-dd]",
-                default=str(date.today() + timedelta(days=7)),
-                validate=check_date,
-            ),
-        )
-        data = form.ask()
-        data["due_date"] = datetime.fromisoformat(data["due_date"])
-
-        with db_session(get_path_from_config()) as session:
-            if task := Crud(session).create(data):
-                console.print(
-                    f"[green]Created project={task.name}, id={task.id}[/green]"
-                )
-            else:
-                console.print("[red]Project with name already exists[/red]")
-                raise typer.Exit()
-
-        console.print(data)
-
-    else:
-        validate_path(path)
-        console.print("Creating a task")
-
-        form = questionary.form(
-            description=questionary.text("Task Title:"),
-            details=questionary.text("Task description:"),
-            priority=questionary.select(
-                "Task priority:", choices=Priority.list_values(), default=Priority.LOW
-            ),
-            due_date=questionary.text(
-                "Due date:",
-                instruction="[yyyy-mm-dd]",
-                default=str(date.today() + timedelta(days=7)),
-                validate=check_date,
-            ),
-        )
-
-        data = form.ask()
-        console.print(data)
+        choice = questionary.select("Creating new", choices=["project", "task"]).ask()
+        match choice:
+            case "project":
+                # create project
+                pass
+            case "task":
+                # further prompt for task
+                pass
 
 
 @app.command()

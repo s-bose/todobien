@@ -2,7 +2,7 @@ from datetime import datetime
 from sqlalchemy import String, Integer, JSON, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, declarative_base, mapped_column, relationship
 
-from todobien.enums import Priority, Status
+from todobien.constants import Priority, Status
 
 Base = declarative_base()
 
@@ -15,6 +15,7 @@ class Task(Base):
     description: Mapped[str] = mapped_column(String, nullable=True)
     links: Mapped[str] = mapped_column(String, nullable=True)
     additional_data: Mapped[dict] = mapped_column(JSON, nullable=True)
+    slug: Mapped[str] = mapped_column(String, nullable=False)
     is_done: Mapped[bool] = mapped_column(Boolean, default=False)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
     parent_id: Mapped[int] = mapped_column(
