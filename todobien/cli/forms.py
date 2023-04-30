@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 import questionary
 
-from todobien.validators import check_date, validate_estimate
+from todobien.cli.validators import check_date, validate_estimate
 from todobien.constants import Priority
 
 new_project_form = questionary.form(

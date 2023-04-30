@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 from todobien.tasks.repository import TaskRepository
-from todobien.forms import new_project_form, new_task_form
+from todobien.cli.forms import new_project_form, new_task_form
 
 
 class TaskService:

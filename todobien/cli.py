@@ -1,6 +1,6 @@
 from datetime import date, timedelta, datetime
 from pathlib import Path
-from todobien.validators import check_date
+from todobien.cli.validators import check_date
 import typer
 import questionary
 from rich.console import Console
@@ -8,7 +8,7 @@ from prompt_toolkit.shortcuts import CompleteStyle
 from sqlalchemy.engine import create_engine
 
 from todobien.db.models import Base
-from todobien.models.schemas import Priority, Status
+from todobien.constants import Priority, Status
 from todobien.config import settings
 from todobien.utils import get_path_from_config, create_config
 from todobien.db.database import db_session
