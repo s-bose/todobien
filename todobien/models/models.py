@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy import String, Integer, JSON, Boolean, ForeignKey, DateTime
-from sqlalchemy.orm import Mapped, declarative_base, mapped_column
+from sqlalchemy.orm import Mapped, declarative_base, mapped_column, relationship
 
 Base = declarative_base()
 
@@ -22,3 +22,5 @@ class Task(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
     due_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    tasks = relationship("Task")

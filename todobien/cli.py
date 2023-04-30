@@ -49,6 +49,12 @@ def add(
     )
 ):
     if not path:
+        is_new_project = questionary.confirm(
+            "Create a new project?", default=False
+        ).ask()
+        if not is_new_project:
+            pass
+
         console.print("Creating a new project")
 
         form = questionary.form(
