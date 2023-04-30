@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from pathlib import Path
 from todobien.validators import check_date
 import typer
@@ -7,11 +7,12 @@ from rich.console import Console
 from prompt_toolkit.shortcuts import CompleteStyle
 from sqlalchemy.engine import create_engine
 
-from todobien.models.models import Base
-from todobien.models.enums import Priority, Status
+from todobien.db.models import Base
+from todobien.models.schemas import Priority, Status
 from todobien.config import settings
 from todobien.utils import get_path_from_config, create_config
-
+from todobien.db.database import db_session
+from todobien.services.crud import Crud
 
 app = typer.Typer()
 console = Console()
@@ -48,17 +49,26 @@ def add(
         "", "-p", "--path", help="path to a resource separated by /"
     )
 ):
+    if not get_path_from_config():
+        console.print(
+            "todobien is not initialized yet! Run [italic]todobien init[/italic] first!",
+            style="red bold",
+        )
+        raise typer.Exit()
+
     if not path:
         is_new_project = questionary.confirm(
             "Create a new project?", default=False
         ).ask()
         if not is_new_project:
-            pass
+            raise typer.Exit()
 
         console.print("Creating a new project")
 
         form = questionary.form(
-            name=questionary.text("Name of the project:"),
+            name=questionary.text(
+                "Name of the project:", validate=lambda x: len(x) > 0
+            ),
             description=questionary.text("Description:", default=""),
             links=questionary.text("Links:", default=""),
             priority=questionary.select(
@@ -72,6 +82,17 @@ def add(
             ),
         )
         data = form.ask()
+        data["due_date"] = datetime.fromisoformat(data["due_date"])
+
+        with db_session(get_path_from_config()) as session:
+            if task := Crud(session).create(data):
+                console.print(
+                    f"[green]Created project={task.name}, id={task.id}[/green]"
+                )
+            else:
+                console.print("[red]Project with name already exists[/red]")
+                raise typer.Exit()
+
         console.print(data)
 
     else:

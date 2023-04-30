@@ -29,3 +29,6 @@ class Priority(BaseEnum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
+
+
+ESTIMATE_KEYS = ("mo", "w", "d", "h", "m")
