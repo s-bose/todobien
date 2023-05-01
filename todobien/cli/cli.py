@@ -12,8 +12,9 @@ from todobien.constants import Priority, Status
 from todobien.config import settings
 from todobien.utils import get_path_from_config, create_config
 
-# from todobien.db.database import db_session
-# from todobien.services.crud import Crud
+from todobien.db.database import db_session
+from todobien.tasks.service import TaskService
+from todobien.tasks.exceptions import TaskExists
 
 app = typer.Typer()
 console = Console()
@@ -121,8 +122,12 @@ def add(
         choice = questionary.select("Creating new", choices=["project", "task"]).ask()
         match choice:
             case "project":
-                # create project
-                pass
+                with db_session() as session:
+                    try:
+                        TaskService(session).create_project()
+                    except TaskExists:
+                        typer.echo("Project already exists! Skipping.")
+                        raise typer.Exit()
             case "task":
                 # further prompt for task
                 pass
