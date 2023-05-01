@@ -26,7 +26,9 @@ class Task(Base):
     estimate: Mapped[str] = mapped_column(String, nullable=True, default="7d")
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.now(), onupdate=datetime.now()
+    )
     due_date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
     tasks = relationship("Task")

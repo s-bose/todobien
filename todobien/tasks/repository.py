@@ -20,18 +20,24 @@ class TaskRepository:
         self.session.refresh(task)
         return task
 
-    def update_task(self, *, id: int, task_dict: dict) -> Task | None:
-        """updates a task or project"""
-        if not (task := self.get_task(id)):
-            return None
+    def update_task(self, task: Task, task_dict: dict) -> Task:
         try:
-            task.update(**task_dict)
+            for key, value in task_dict.items():
+                if value:
+                    setattr(task, key, value)
+
             self.session.commit()
         except Exception:
             self.session.rollback()
 
         self.session.refresh(task)
         return task
+
+    def update_task_by_id(self, id: int, task_dict: dict) -> Task | None:
+        """updates a task or project"""
+        if not (task := self.get_task(id)):
+            return None
+        return self.update_task(task, task_dict)
 
     def get_task(self, id: int) -> Task | None:
         return self.session.get(Task, id)
