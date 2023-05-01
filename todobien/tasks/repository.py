@@ -49,3 +49,6 @@ class TaskRepository:
             self.session.rollback()
 
         return task, True
+
+    def get_all_root_tasks(self) -> list[Task] | None:
+        return self.session.scalars(select(Task).filter_by(parent_id=None)).all()

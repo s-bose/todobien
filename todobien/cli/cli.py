@@ -130,12 +130,24 @@ def add(
                         raise typer.Exit()
             case "task":
                 # further prompt for task
-                pass
+                console.print("tasks not supported yet")
+                raise typer.Exit()
 
 
 @app.command()
-def edit():
-    console.print("edit")
+def edit(
+    path: str = typer.Option(
+        "", "-p", "--path", help="path to a resource separated by /"
+    )
+):
+    if not path:
+        choice = questionary.select("Edit", choices=["project", "task"]).ask()
+        match choice:
+            case "project":
+                with db_session() as session:
+                    TaskService(session).update_project()
+            case "task":
+                raise typer.Abort()
 
 
 @app.command()

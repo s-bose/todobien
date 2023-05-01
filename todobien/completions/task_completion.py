@@ -2,7 +2,6 @@ from typing import Iterable
 
 from prompt_toolkit.completion import Completer, CompleteEvent, Completion
 from prompt_toolkit.document import Document
-
 from todobien.utils import get_path_from_config
 from todobien.db.database import db_session
 from todobien.services.crud import Crud

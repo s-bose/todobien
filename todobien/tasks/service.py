@@ -1,8 +1,9 @@
 from datetime import datetime
+import questionary
 
 from sqlalchemy.orm import Session
 from todobien.tasks.repository import TaskRepository
-from todobien.tasks.exceptions import TaskExists
+from todobien.tasks.exceptions import TaskExists, TaskNotFound
 from todobien.cli.forms import new_project_form, new_task_form, update_project_form
 
 
@@ -24,7 +25,22 @@ class TaskService:
         return self.task_repository.create_task(new_project)
 
     def update_project(self):
+        all_projects = self.task_repository.get_all_root_tasks()
+        print(all_projects)
+        name = questionary.select(
+            "Choose project:", choices=[p.name for p in all_projects]
+        ).ask()
+        try:
+            selected_project = next(p for p in all_projects if p.name == name)
+        except StopIteration:
+            raise TaskNotFound
+
         update_project = update_project_form.ask()
+
+        # convert due_date str to datetime
+        update_project["due_date"] = datetime.fromisoformat(update_project["due_date"])
+
+        selected_project.update(**update_project)
 
     def create_task(self):
         new_task = new_task_form.ask()
