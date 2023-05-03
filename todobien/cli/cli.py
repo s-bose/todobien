@@ -4,6 +4,8 @@ from todobien.cli.validators import check_date
 import typer
 import questionary
 from rich.console import Console
+from prompt_toolkit import prompt
+from prompt_toolkit.completion import PathCompleter
 from prompt_toolkit.shortcuts import CompleteStyle
 from sqlalchemy.engine import create_engine
 
@@ -15,6 +17,7 @@ from todobien.utils import get_path_from_config, create_config
 from todobien.db.database import db_session
 from todobien.tasks.service import TaskService
 from todobien.tasks.exceptions import TaskExists
+from todobien.completions.task_completion import TaskCompleter
 
 app = typer.Typer()
 console = Console()
@@ -127,11 +130,15 @@ def add(
                         TaskService(session).create_project()
                     except TaskExists:
                         typer.echo("Project already exists! Skipping.")
-                        raise typer.Exit()
+                        raise typer.Abort()
             case "task":
-                # further prompt for task
-                console.print("tasks not supported yet")
-                raise typer.Exit()
+                with db_session() as session:
+                    try:
+                        task_svc = TaskService(session)
+                        task_svc.create_task()
+                    except TaskExists:
+                        typer.echo("Task already exists! Skipping.")
+                        raise typer.Abort()
 
 
 @app.command()

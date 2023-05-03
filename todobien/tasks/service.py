@@ -5,6 +5,10 @@ from sqlalchemy.orm import Session
 from todobien.tasks.repository import TaskRepository
 from todobien.tasks.exceptions import TaskExists, TaskNotFound
 from todobien.cli.forms import new_project_form, new_task_form, update_project_form
+from todobien.db.models import Task
+from todobien.db.database import db_session
+from prompt_toolkit.completion import NestedCompleter
+from prompt_toolkit.shortcuts import CompleteStyle
 
 
 class TaskService:
@@ -41,17 +45,50 @@ class TaskService:
             selected_project.id, update_project
         )
 
+    def construct_task_tree(self):
+        def _recurse_tree(node: Task):
+            if node.tasks and len(node.tasks) != 0:
+                return {task.slug: _recurse_tree(task) for task in node.tasks}
+            else:
+                return None
+
+        root = self.task_repository.get_all_root_tasks()
+        root_tree = {node.name: _recurse_tree(node) for node in root}
+        return root_tree
+
     def create_task(self):
-        new_task = new_task_form.ask()
+        task_dict = self.construct_task_tree()
+        meta = {
+            "unsaver": "a web app to browse and declutter your reddit saved posts",
+            "todobien": "a cli-based task management app",
+            "1": "add additional fields",
+        }
 
-        # convert due_date str to datetime
-        new_task["due_date"] = datetime.fromisoformat(new_task["due_date"])
+        completer = NestedCompleter.from_nested_dict(task_dict)
+        # text = prompt("enter task path:", completer=completer)
+        text = questionary.autocomplete(
+            "enter task path:",
+            choices=task_dict,
+            completer=completer,
+            complete_style=CompleteStyle.MULTI_COLUMN,
+        ).ask()
+        print(text)
+        # new_task = new_task_form.ask()
 
-        parent_id = new_task["parent_id"]
-        # TODO
+        # # convert due_date str to datetime
+        # new_task["due_date"] = datetime.fromisoformat(new_task["due_date"])
+        # new_task["parent_id"] = parent.id
+        # new_task["slug"] = len(parent.tasks) + 1
+        # return self.task_repository.create_task(new_task)
 
     def generate_project_slug(self, project_name: str) -> str:
         try:
             return project_name[:3].upper()
         except IndexError:
             return project_name.upper()
+
+
+if __name__ == "__main__":
+    with db_session() as session:
+        d = TaskService(session).construct_task_tree()
+        print(d)
