@@ -1,8 +1,10 @@
+from dateutil.parser import parse
 from datetime import date, timedelta, datetime
 import questionary
 from dataclasses import fields, dataclass
 
-from todobien.cli.validators import check_date, validate_estimate
+from todobien.utils import generate_project_slug
+from todobien.cli.validators import check_date, validate_estimate, validate_slug
 from todobien.constants import Priority, Status
 
 
@@ -11,94 +13,113 @@ class QuestionaryMixin:
     create a questionary form from the dataclass fields"""
 
     @classmethod
-    def create_form(cls):
+    def create_form(cls, **kwargs):
         form_data = {}
         for field in fields(cls):
-            form_data[field.name] = field.default
+            if isinstance(field.default, questionary.Question):
+                form_data[field.name] = field.default
         answer_dict = questionary.form(**form_data).ask()
 
         for field in fields(cls):
+            if not isinstance(field.default, questionary.Question):
+                continue
             if answer_dict[field.name] is None:
                 raise ValueError
-
             if field.type == int:
                 value = int(answer_dict[field.name])
             elif field.type == float:
                 value = float(answer_dict[field.name])
             elif field.type == datetime:
-                value = datetime.fromisoformat(answer_dict[field.name])
+                value = parse(answer_dict[field.name])
             else:
                 value = answer_dict[field.name]
 
             answer_dict[field.name] = value
-        return cls(**answer_dict)
+        return cls(**answer_dict, **kwargs)
 
 
-new_project_form = questionary.form(
-    name=questionary.text("Name of the project:", validate=lambda x: len(x) > 0),
-    description=questionary.text("Description:", default=""),
-    links=questionary.text("Links:", default=""),
-    priority=questionary.select(
+@dataclass
+class NewProject(QuestionaryMixin):
+    name: str = questionary.text("Name of the project:", validate=lambda x: len(x) > 0)
+    slug: str = questionary.text(
+        "Project slug:",
+        default=generate_project_slug(),  # TODO - howto get `name` input after asking
+        validate=validate_slug,
+    )
+    description: str = questionary.text("Description:", default="")
+    links: str = questionary.text("Links:", default="")
+    priority: Priority = questionary.select(
         "Priority:", choices=Priority.list_values(), default=Priority.LOW
-    ),
-    due_date=questionary.text(
+    )
+    due_date: datetime = questionary.text(
         "Due date:",
         instruction="[yyyy-mm-dd]",
         default=str(date.today() + timedelta(days=7)),
         validate=check_date,
-    ),
-)
+    )
 
-update_project_form = questionary.form(
-    description=questionary.text("Description:", default=""),
-    links=questionary.text("Links:", default=""),
-    priority=questionary.select(
+
+@dataclass
+class UpdateProject(QuestionaryMixin):
+    description: str = questionary.text("Description:", default="")
+    links: str = questionary.text("Links:", default="")
+    priority: Priority = questionary.select(
         "Priority:", choices=Priority.list_values(), default=None
-    ),
-    status=questionary.select("Status:", choices=Status.list_values(), default=None),
-    estimate=questionary.text("Estimate:"),
-)
-
-new_task_form = questionary.form(
-    name=questionary.text("Name of the task:", validate=lambda x: len(x) > 0),
-    description=questionary.text("Description:", default=""),
-    links=questionary.text("Links:", default=""),
-    priority=questionary.select(
-        "Priority:", choices=Priority.list_values(), default=Priority.LOW
-    ),
-    due_date=questionary.text(
-        "Due date:",
-        instruction="[yyyy-mm-dd]",
-        default=str(date.today() + timedelta(days=7)),
-        validate=check_date,
-    ),
-    estimate=questionary.text(
+    )
+    status: Status = questionary.select(
+        "Status:", choices=Status.list_values(), default=None
+    )
+    estimate: str = questionary.text(
         "Estimate:",
         instruction="estimate delta [mo-w-d-h-m]",
         default="7d",
         validate=validate_estimate,
-    ),
-)
+    )
 
-if __name__ == "__main__":
 
-    @dataclass
-    class NewProjectForm(QuestionaryMixin):
-        name: str = questionary.text(
-            "Name of the project:", validate=lambda x: len(x) > 0
-        )
-        description: str = questionary.text("Description:", default="")
-        links: str = questionary.text("Links:", default="")
-        priority: Priority = questionary.select(
+@dataclass
+class NewTask(QuestionaryMixin):
+    parent_id: int
+    name: str = (questionary.text("Name of the task:", validate=lambda x: len(x) > 0),)
+    description: str = (questionary.text("Description:", default=""),)
+    links: str = (questionary.text("Links:", default=""),)
+    priority: Priority = (
+        questionary.select(
             "Priority:", choices=Priority.list_values(), default=Priority.LOW
-        )
-
-        due_date: datetime = questionary.text(
+        ),
+    )
+    due_date: datetime = (
+        questionary.text(
             "Due date:",
             instruction="[yyyy-mm-dd]",
             default=str(date.today() + timedelta(days=7)),
             validate=check_date,
-        )
+        ),
+    )
+    estimate: str = (
+        questionary.text(
+            "Estimate:",
+            instruction="estimate delta [mo-w-d-h-m]",
+            default="7d",
+            validate=validate_estimate,
+        ),
+    )
 
-    result = NewProjectForm.create_form()
-    print(result)
+
+@dataclass
+class UpdateTask(QuestionaryMixin):
+    parent_id: int
+    description: str = questionary.text("Description:", default="")
+    links: str = questionary.text("Links:", default="")
+    priority: Priority = questionary.select(
+        "Priority:", choices=Priority.list_values(), default=None
+    )
+    status: Status = questionary.select(
+        "Status:", choices=Status.list_values(), default=None
+    )
+    estimate: str = questionary.text(
+        "Estimate:",
+        instruction="estimate delta [mo-w-d-h-m]",
+        default="7d",
+        validate=validate_estimate,
+    )

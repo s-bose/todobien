@@ -45,6 +45,9 @@ class TaskRepository:
     def get_task_by_name(self, name: str) -> Task | None:
         return self.session.scalars(select(Task).filter_by(name=name)).first()
 
+    def get_task_by_slug(self, slug: str) -> Task | None:
+        return self.session.scalars(select(Task).filter_by(slug=slug)).first()
+
     def delete_task(self, id: int) -> tuple[Task | None, bool]:
         if not (task := self.get_task(id)):
             return None, False

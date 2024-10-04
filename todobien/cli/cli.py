@@ -61,84 +61,27 @@ def add(
         )
         raise typer.Exit()
 
-    # if not path:
-    #     is_new_project = questionary.confirm(
-    #         "Create a new project?", default=False
-    #     ).ask()
-    #     if not is_new_project:
-    #         raise typer.Exit()
-
-    #     console.print("Creating a new project")
-
-    #     form = questionary.form(
-    #         name=questionary.text(
-    #             "Name of the project:", validate=lambda x: len(x) > 0
-    #         ),
-    #         description=questionary.text("Description:", default=""),
-    #         links=questionary.text("Links:", default=""),
-    #         priority=questionary.select(
-    #             "Priority:", choices=Priority.list_values(), default=Priority.LOW
-    #         ),
-    #         due_date=questionary.text(
-    #             "Due date:",
-    #             instruction="[yyyy-mm-dd]",
-    #             default=str(date.today() + timedelta(days=7)),
-    #             validate=check_date,
-    #         ),
-    #     )
-    #     data = form.ask()
-    #     data["due_date"] = datetime.fromisoformat(data["due_date"])
-
-    #     with db_session(get_path_from_config()) as session:
-    #         if task := Crud(session).create(data):
-    #             console.print(
-    #                 f"[green]Created project={task.name}, id={task.id}[/green]"
-    #             )
-    #         else:
-    #             console.print("[red]Project with name already exists[/red]")
-    #             raise typer.Exit()
-
-    #     console.print(data)
-
-    # else:
-    #     validate_path(path)
-    #     console.print("Creating a task")
-
-    #     form = questionary.form(
-    #         description=questionary.text("Task Title:"),
-    #         details=questionary.text("Task description:"),
-    #         priority=questionary.select(
-    #             "Task priority:", choices=Priority.list_values(), default=Priority.LOW
-    #         ),
-    #         due_date=questionary.text(
-    #             "Due date:",
-    #             instruction="[yyyy-mm-dd]",
-    #             default=str(date.today() + timedelta(days=7)),
-    #             validate=check_date,
-    #         ),
-    #     )
-
-    #     data = form.ask()
-    #     console.print(data)
-
-    if not path:
-        choice = questionary.select("Creating new", choices=["project", "task"]).ask()
-        match choice:
-            case "project":
-                with db_session() as session:
-                    try:
-                        TaskService(session).create_project()
-                    except TaskExists:
-                        typer.echo("Project already exists! Skipping.")
-                        raise typer.Abort()
-            case "task":
-                with db_session() as session:
-                    try:
-                        task_svc = TaskService(session)
-                        task_svc.create_task()
-                    except TaskExists:
-                        typer.echo("Task already exists! Skipping.")
-                        raise typer.Abort()
+    # TODO - handle `--path` later
+    choice = questionary.select("Creating new", choices=["project", "task"]).ask()
+    match choice:
+        case "project":
+            with db_session() as session:
+                try:
+                    new_project = TaskService(session).create_project()
+                    console.print(
+                        f"created new project {new_project.name} ({new_project.slug})"
+                    )
+                except TaskExists:
+                    typer.echo("Project already exists! Skipping.")
+                    raise typer.Abort()
+        case "task":
+            with db_session() as session:
+                try:
+                    task_svc = TaskService(session)
+                    task_svc.create_task()
+                except TaskExists:
+                    typer.echo("Task already exists! Skipping.")
+                    raise typer.Abort()
 
 
 @app.command()

@@ -51,3 +51,12 @@ def validate_estimate(estimare_str: str) -> bool:
             return False
 
     return True
+
+
+def validate_slug(slug: str) -> bool | None:
+    with db_session() as session:
+        tasks_with_slug = TaskRepository(session).get_task_by_slug(slug)
+        if tasks_with_slug or len(tasks_with_slug) > 0:
+            raise ValueError("slug already exists")
+
+        return True

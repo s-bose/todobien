@@ -1,14 +1,15 @@
-from datetime import datetime
+from dataclasses import asdict
 import questionary
 
 from sqlalchemy.orm import Session
-from todobien.tasks.repository import TaskRepository
-from todobien.tasks.exceptions import TaskExists, TaskNotFound
-from todobien.cli.forms import new_project_form, new_task_form, update_project_form
-from todobien.db.models import Task
-from todobien.db.database import db_session
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit.shortcuts import CompleteStyle
+
+from todobien.tasks.repository import TaskRepository
+from todobien.tasks.exceptions import TaskExists, TaskNotFound
+from todobien.cli.forms import NewProject
+from todobien.db.models import Task
+from todobien.db.database import db_session
 
 
 class TaskService:
@@ -16,17 +17,12 @@ class TaskService:
         self.task_repository = TaskRepository(session)
 
     def create_project(self):
-        new_project = new_project_form.ask()
+        new_project: NewProject = NewProject.create_form()
 
-        if self.task_repository.get_task_by_name(new_project["name"]):
+        if self.task_repository.get_task_by_name(new_project.name):
             raise TaskExists
 
-        # convert due_date str to datetime
-        new_project["due_date"] = datetime.fromisoformat(new_project["due_date"])
-
-        # create project slug
-        new_project["slug"] = self.generate_project_slug(new_project["name"])
-        return self.task_repository.create_task(new_project)
+        return self.task_repository.create_task(asdict(new_project))
 
     def update_project(self):
         all_projects = self.task_repository.get_all_root_tasks()
@@ -80,12 +76,6 @@ class TaskService:
         # new_task["parent_id"] = parent.id
         # new_task["slug"] = len(parent.tasks) + 1
         # return self.task_repository.create_task(new_task)
-
-    def generate_project_slug(self, project_name: str) -> str:
-        try:
-            return project_name[:3].upper()
-        except IndexError:
-            return project_name.upper()
 
 
 if __name__ == "__main__":
